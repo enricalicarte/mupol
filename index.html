@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUpol: Escuadrón de Protección</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(to bottom, #0a192f, #172a46);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-container {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mupol-logo {
+            filter: drop-shadow(0 0 10px #F1BF00);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #F1BF00;
+            text-shadow: 0 0 10px #F1BF00, 0 0 20px #F1BF00;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #ccc;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .organization {
+            font-size: 0.9rem;
+            color: #F1BF00;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .game-ui {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .stat {
+            color: #F1BF00;
+            text-shadow: 0 0 5px #F1BF00;
+        }
+
+        .game-container {
+            position: relative;
+            border: 3px solid #F1BF00;
+            box-shadow: 0 0 30px rgba(241, 191, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #1a365d, #2d4a6b);
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+            flex-direction: column;
+        }
+
+        .game-over-content {
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #F1BF00;
+            border-radius: 10px;
+            background: rgba(26, 46, 90, 0.9);
+        }
+
+        .mupol-logo-small {
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 5px #F1BF00);
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #F1BF00;
+            text-shadow: 0 0 10px #F1BF00;
+            margin-bottom: 15px;
+        }
+
+        .overlay button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: #F1BF00;
+            color: #1a2e5a;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .overlay button:hover {
+            background: #ffcc33;
+            box-shadow: 0 0 15px #F1BF00;
+        }
+
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .controls h3 {
+            color: #F1BF00;
+            margin-bottom: 10px;
+        }
+
+        .controls p {
+            margin: 5px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <svg width="150" height="100" viewBox="0 0 200 120" class="mupol-logo">
+                <defs>
+                    <linearGradient id="mupolShield" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#2a4a8a"/>
+                        <stop offset="100%" style="stop-color:#1a2e5a"/>
+                    </linearGradient>
+                    <filter id="logoGlow">
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                        <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                
+                <!-- Spanish Flag Base -->
+                <rect x="20" y="20" width="160" height="12" fill="#AA151B"/>
+                <rect x="20" y="32" width="160" height="24" fill="#F1BF00"/>
+                <rect x="20" y="56" width="160" height="12" fill="#AA151B"/>
+                
+                <!-- Main Shield -->
+                <path d="M100 15 L170 30 L170 75 Q170 90 100 100 Q30 90 30 75 L30 30 Z" 
+                      fill="url(#mupolShield)" stroke="#F1BF00" stroke-width="3" filter="url(#logoGlow)"/>
+                
+                <!-- Central Police Emblem -->
+                <circle cx="100" cy="57.5" r="18" fill="#F1BF00" stroke="#1a2e5a" stroke-width="2"/>
+                
+                <!-- Police Star -->
+                <g transform="translate(100, 57.5)">
+                    <polygon points="0,-12 3.5,-4 12,-4 6,1 8,9 0,5 -8,9 -6,1 -12,-4 -3.5,-4" 
+                             fill="#1a2e5a" stroke="#F1BF00" stroke-width="0.5"/>
+                </g>
+                
+                <!-- MUPOL Text -->
+                <text x="100" y="88" text-anchor="middle" fill="#F1BF00" font-family="Arial Black, sans-serif" 
+                      font-size="16" font-weight="900">MUPOL</text>
+                
+                <!-- Decorative Elements -->
+                <circle cx="60" cy="40" r="3" fill="#F1BF00"/>
+                <circle cx="140" cy="40" r="3" fill="#F1BF00"/>
+                <circle cx="60" cy="75" r="3" fill="#F1BF00"/>
+                <circle cx="140" cy="75" r="3" fill="#F1BF00"/>
+            </svg>
+        </div>
+        <h1 class="title">MUPOL</h1>
+        <h2 class="subtitle">Escuadrón de Protección</h2>
+        <p class="organization">Mutualidad de Previsión Social de la Policía</p>
+    </div>
+
+    <div class="game-ui">
+        <div class="stat">Puntuación: <span id="score">0</span></div>
+        <div class="stat">Capital: €<span id="capital">32000</span></div>
+        <div class="stat">Oleada: <span id="wave">1</span></div>
+    </div>
+
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="gameOverScreen" class="overlay hidden">
+            <div class="game-over-content">
+                <svg width="120" height="80" viewBox="0 0 200 120" class="mupol-logo-small">
+                    <defs>
+                        <linearGradient id="mupolShieldSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2a4a8a"/>
+                            <stop offset="100%" style="stop-color:#1a2e5a"/>
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Spanish Flag Base -->
+                    <rect x="20" y="20" width="160" height="10" fill="#AA151B"/>
+                    <rect x="20" y="30" width="160" height="20" fill="#F1BF00"/>
+                    <rect x="20" y="50" width="160" height="10" fill="#AA151B"/>
+                    
+                    <!-- Main Shield -->
+                    <path d="M100 15 L170 30 L170 70 Q170 85 100 95 Q30 85 30 70 L30 30 Z" 
+                          fill="url(#mupolShieldSmall)" stroke="#F1BF00" stroke-width="2"/>
+                    
+                    <!-- Central Police Emblem -->
+                    <circle cx="100" cy="55" r="15" fill="#F1BF00" stroke="#1a2e5a" stroke-width="1.5"/>
+                    
+                    <!-- Police Star -->
+                    <g transform="translate(100, 55)">
+                        <polygon points="0,-10 3,-3 10,-3 5,1 6,8 0,4 -6,8 -5,1 -10,-3 -3,-3" 
+                                 fill="#1a2e5a" stroke="#F1BF00" stroke-width="0.3"/>
+                    </g>
+                    
+                    <!-- MUPOL Text -->
+                    <text x="100" y="78" text-anchor="middle" fill="#F1BF00" font-family="Arial Black, sans-serif" 
+                          font-size="13" font-weight="900">MUPOL</text>
+                </svg>
+                <h2>MISIÓN COMPLETADA</h2>
+                <p style="font-size: 1.2rem; margin-bottom: 10px;">La ciudad está segura gracias a tu protección</p>
+                <p style="font-size: 1.5rem; margin-bottom: 20px;">Puntuación Final: <span id="finalScore">0</span></p>
+                <p style="font-size: 0.9rem; color: #888; margin-bottom: 20px;">Mutualidad de Previsión Social de la Policía - Est. 1951</p>
+                <button onclick="restartGame()">NUEVA MISIÓN</button>
+            </div>
+        </div>
+
+        <div id="pauseScreen" class="overlay hidden">
+            <h2>PAUSA</h2>
+        </div>
+    </div>
+
+    <div class="controls">
+        <h3>Controles</h3>
+        <p>← → ↑ ↓ - Mover helicóptero</p>
+        <p>ESPACIO - Disparar</p>
+        <p>P - Pausar/Reanudar</p>
+    </div>
+
+    <script>
+        // Constants
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 600;
+        const PLAYER_WIDTH = 35;
+        const PLAYER_HEIGHT = 55;
+        const PLAYER_SPEED = 6;
+        const BULLET_SPEED = 9;
+        const ENEMY_BULLET_SPEED = 5;
+        const INITIAL_INSURED_CAPITAL = 32000;
+        const PLAYER_HIT_DAMAGE = 16000;
+        const PLAN_AHORRO_VALUE = 40000;
+        const MUPOL_PLUS_VALUE = 100000;
+
+        // Game state
+        let gameState = {
+            score: 0,
+            insuredCapital: INITIAL_INSURED_CAPITAL,
+            wave: 1,
+            isGameOver: false,
+            isPaused: false,
+            player: {
+                x: CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2,
+                y: CANVAS_HEIGHT - PLAYER_HEIGHT - 20,
+                width: PLAYER_WIDTH,
+                height: PLAYER_HEIGHT
+            },
+            bullets: [],
+            enemies: [],
+            enemyBullets: [],
+            explosions: [],
+            clouds: [],
+            buildings: [],
+            powerUps: [],
+            keys: {},
+            enemySpawnTimer: 0,
+            enemySpawnRate: 70,
+            playerShootTimer: 0,
+            sirenState: 0
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI elements
+        const scoreElement = document.getElementById('score');
+        const capitalElement = document.getElementById('capital');
+        const waveElement = document.getElementById('wave');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        // Initialize game
+        function initGame() {
+            // Initialize clouds
+            gameState.clouds = [];
+            for (let i = 0; i < 20; i++) {
+                gameState.clouds.push({
+                    x: Math.random() * CANVAS_WIDTH,
+                    y: Math.random() * CANVAS_HEIGHT,
+                    size: Math.random() * 20 + 20,
+                    speed: Math.random() * 0.4 + 0.1,
+                    opacity: Math.random() * 0.3 + 0.2
+                });
+            }
+
+            // Initialize buildings
+            gameState.buildings = [];
+            for (let i = 0; i < 15; i++) {
+                gameState.buildings.push({
+                    x: Math.random() * CANVAS_WIDTH,
+                    y: CANVAS_HEIGHT + Math.random() * 200,
+                    width: Math.random() * 50 + 40,
+                    height: Math.random() * 150 + 100,
+                    speed: 0.8
+                });
+            }
+        }
+
+        // Input handling
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyP') {
+                togglePause();
+            } else if (e.code === 'Space') {
+                e.preventDefault();
+                gameState.keys[e.code] = true;
+            } else {
+                gameState.keys[e.code] = true;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            gameState.keys[e.code] = false;
+        });
+
+        // Game functions
+        function togglePause() {
+            if (gameState.isGameOver) return;
+            gameState.isPaused = !gameState.isPaused;
+            pauseScreen.classList.toggle('hidden', !gameState.isPaused);
+        }
+
+        function restartGame() {
+            gameState = {
+                score: 0,
+                insuredCapital: INITIAL_INSURED_CAPITAL,
+                wave: 1,
+                isGameOver: false,
+                isPaused: false,
+                player: {
+                    x: CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2,
+                    y: CANVAS_HEIGHT - PLAYER_HEIGHT - 20,
+                    width: PLAYER_WIDTH,
+                    height: PLAYER_HEIGHT
+                },
+                bullets: [],
+                enemies: [],
+                enemyBullets: [],
+                explosions: [],
+                clouds: [],
+                buildings: [],
+                powerUps: [],
+                keys: {},
+                enemySpawnTimer: 0,
+                enemySpawnRate: 70,
+                playerShootTimer: 0,
+                sirenState: 0
+            };
+            initGame();
+            gameOverScreen.classList.add('hidden');
+            updateUI();
+        }
+
+        function updateUI() {
+            scoreElement.textContent = gameState.score;
+            capitalElement.textContent = gameState.insuredCapital;
+            waveElement.textContent = gameState.wave;
+        }
+
+        function update() {
+            if (gameState.isPaused || gameState.isGameOver) return;
+
+            // Update siren animation
+            gameState.sirenState = (gameState.sirenState + 1) % 20;
+
+            // Player movement
+            if (gameState.keys['ArrowLeft'] && gameState.player.x > 0) {
+                gameState.player.x -= PLAYER_SPEED;
+            }
+            if (gameState.keys['ArrowRight'] && gameState.player.x < CANVAS_WIDTH - gameState.player.width) {
+                gameState.player.x += PLAYER_SPEED;
+            }
+            if (gameState.keys['ArrowUp'] && gameState.player.y > 0) {
+                gameState.player.y -= PLAYER_SPEED;
+            }
+            if (gameState.keys['ArrowDown'] && gameState.player.y < CANVAS_HEIGHT - gameState.player.height) {
+                gameState.player.y += PLAYER_SPEED;
+            }
+
+            // Player shooting
+            if (gameState.keys['Space'] && gameState.playerShootTimer <= 0) {
+                gameState.bullets.push({
+                    x: gameState.player.x + gameState.player.width / 2 - 2,
+                    y: gameState.player.y,
+                    width: 4,
+                    height: 12,
+                    speed: BULLET_SPEED
+                });
+                gameState.playerShootTimer = 10;
+            }
+            if (gameState.playerShootTimer > 0) gameState.playerShootTimer--;
+
+            // Update background
+            gameState.clouds.forEach(cloud => {
+                cloud.y += cloud.speed;
+                if (cloud.y > CANVAS_HEIGHT + cloud.size) {
+                    cloud.y = -cloud.size;
+                    cloud.x = Math.random() * CANVAS_WIDTH;
+                }
+            });
+
+            gameState.buildings.forEach(building => {
+                building.y -= building.speed;
+                if (building.y + building.height < 0) {
+                    building.y = CANVAS_HEIGHT + Math.random() * 50;
+                    building.x = Math.random() * CANVAS_WIDTH;
+                }
+            });
+
+            // Update bullets
+            gameState.bullets = gameState.bullets.filter(bullet => bullet.y > -bullet.height);
+            gameState.bullets.forEach(bullet => bullet.y -= bullet.speed);
+
+            // Enemy spawning
+            gameState.enemySpawnTimer++;
+            if (gameState.enemySpawnTimer >= gameState.enemySpawnRate) {
+                const enemyType = Math.random() > 0.8 ? 'bomber' : 'drone';
+                const width = enemyType === 'drone' ? 35 : 50;
+                const height = enemyType === 'drone' ? 35 : 45;
+                gameState.enemies.push({
+                    x: Math.random() * (CANVAS_WIDTH - width),
+                    y: -height,
+                    width,
+                    height,
+                    speed: enemyType === 'drone' ? (2 + gameState.wave * 0.1) : (1.5 + gameState.wave * 0.1),
+                    points: enemyType === 'drone' ? 100 : 250,
+                    shootChance: enemyType === 'drone' ? 0.01 : 0.025,
+                    type: enemyType
+                });
+                gameState.enemySpawnTimer = 0;
+                if (gameState.enemySpawnRate > 25) gameState.enemySpawnRate -= 0.2;
+            }
+
+            // Power-up spawning
+            const randomChance = Math.random();
+            if (randomChance < 0.002) {
+                const isMupolPlus = randomChance < 0.0005;
+                gameState.powerUps.push({
+                    x: Math.random() * (CANVAS_WIDTH - 30),
+                    y: -30,
+                    width: 30,
+                    height: 30,
+                    speed: 2.5,
+                    type: isMupolPlus ? 'mupolPlus' : 'planAhorro',
+                    value: isMupolPlus ? MUPOL_PLUS_VALUE : PLAN_AHORRO_VALUE
+                });
+            }
+
+            // Update enemies & enemy shooting
+            gameState.enemies.forEach(enemy => {
+                enemy.y += enemy.speed;
+                if (Math.random() < enemy.shootChance) {
+                    gameState.enemyBullets.push({
+                        x: enemy.x + enemy.width / 2 - 2.5,
+                        y: enemy.y + enemy.height,
+                        width: 5,
+                        height: 5,
+                        speed: ENEMY_BULLET_SPEED
+                    });
+                }
+            });
+            gameState.enemies = gameState.enemies.filter(enemy => enemy.y < CANVAS_HEIGHT);
+
+            // Update enemy bullets
+            gameState.enemyBullets = gameState.enemyBullets.filter(bullet => bullet.y < CANVAS_HEIGHT);
+            gameState.enemyBullets.forEach(bullet => bullet.y += bullet.speed);
+
+            // Update power-ups
+            gameState.powerUps = gameState.powerUps.filter(powerUp => powerUp.y < CANVAS_HEIGHT);
+            gameState.powerUps.forEach(powerUp => powerUp.y += powerUp.speed);
+
+            // Update explosions
+            gameState.explosions = gameState.explosions.filter(explosion => {
+                explosion.timer--;
+                return explosion.timer > 0;
+            });
+
+            // Collision detection
+            // Player bullets vs enemies
+            for (let i = gameState.bullets.length - 1; i >= 0; i--) {
+                for (let j = gameState.enemies.length - 1; j >= 0; j--) {
+                    const bullet = gameState.bullets[i];
+                    const enemy = gameState.enemies[j];
+                    if (bullet && enemy && 
+                        bullet.x < enemy.x + enemy.width && 
+                        bullet.x + bullet.width > enemy.x && 
+                        bullet.y < enemy.y + enemy.height && 
+                        bullet.y + bullet.height > enemy.y) {
+                        gameState.score += enemy.points;
+                        gameState.explosions.push({
+                            x: enemy.x + enemy.width / 2,
+                            y: enemy.y + enemy.height / 2,
+                            timer: 20
+                        });
+                        gameState.bullets.splice(i, 1);
+                        gameState.enemies.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+
+            // Player vs power-ups
+            for (let i = gameState.powerUps.length - 1; i >= 0; i--) {
+                const powerUp = gameState.powerUps[i];
+                if (powerUp.x < gameState.player.x + gameState.player.width && 
+                    powerUp.x + powerUp.width > gameState.player.x && 
+                    powerUp.y < gameState.player.y + gameState.player.height && 
+                    powerUp.y + powerUp.height > gameState.player.y) {
+                    gameState.insuredCapital += powerUp.value;
+                    gameState.powerUps.splice(i, 1);
+                }
+            }
+
+            // Enemy bullets vs player OR enemies vs player
+            function checkPlayerCollision(obj) {
+                return obj.x < gameState.player.x + gameState.player.width && 
+                       obj.x + obj.width > gameState.player.x && 
+                       obj.y < gameState.player.y + gameState.player.height && 
+                       obj.y + obj.height > gameState.player.y;
+            }
+
+            let playerHit = false;
+
+            for (let i = gameState.enemyBullets.length - 1; i >= 0; i--) {
+                if (checkPlayerCollision(gameState.enemyBullets[i])) {
+                    gameState.enemyBullets.splice(i, 1);
+                    playerHit = true;
+                    break;
+                }
+            }
+
+            if (!playerHit) {
+                for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                    if (checkPlayerCollision(gameState.enemies[i])) {
+                        gameState.explosions.push({
+                            x: gameState.enemies[i].x + gameState.enemies[i].width / 2,
+                            y: gameState.enemies[i].y + gameState.enemies[i].height / 2,
+                            timer: 20
+                        });
+                        gameState.enemies.splice(i, 1);
+                        playerHit = true;
+                        break;
+                    }
+                }
+            }
+
+            if (playerHit) {
+                gameState.insuredCapital -= PLAYER_HIT_DAMAGE;
+                gameState.explosions.push({
+                    x: gameState.player.x + gameState.player.width / 2,
+                    y: gameState.player.y + gameState.player.height / 2,
+                    timer: 30,
+                    size: 2
+                });
+                if (gameState.insuredCapital <= 0) {
+                    gameState.insuredCapital = 0;
+                    gameState.isGameOver = true;
+                    finalScoreElement.textContent = gameState.score;
+                    gameOverScreen.classList.remove('hidden');
+                }
+                gameState.player.x = CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2;
+                gameState.player.y = CANVAS_HEIGHT - PLAYER_HEIGHT - 20;
+            }
+
+            // Check for next wave
+            if (gameState.score > gameState.wave * 2000) {
+                gameState.wave++;
+                if (gameState.enemySpawnRate > 30) gameState.enemySpawnRate -= 5;
+            }
+
+            updateUI();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Draw sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+            gradient.addColorStop(0, '#1a365d');
+            gradient.addColorStop(1, '#2d4a6b');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Draw clouds
+            gameState.clouds.forEach(cloud => {
+                ctx.save();
+                ctx.globalAlpha = cloud.opacity;
+                ctx.fillStyle = '#f0f8ff';
+                ctx.beginPath();
+                ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw buildings
+            gameState.buildings.forEach(building => {
+                ctx.fillStyle = '#2a2a2a';
+                ctx.fillRect(building.x, building.y, building.width, building.height);
+                ctx.fillStyle = '#444';
+                ctx.fillRect(building.x + 5, building.y + 5, building.width - 10, building.height - 10);
+            });
+
+            // Draw player (helicopter)
+            ctx.save();
+            ctx.translate(gameState.player.x + gameState.player.width / 2, gameState.player.y + gameState.player.height / 2);
+            
+            // Helicopter body - MUPOL official colors
+            const helicopterGradient = ctx.createLinearGradient(-gameState.player.width / 2, -gameState.player.height / 2, gameState.player.width / 2, gameState.player.height / 2);
+            helicopterGradient.addColorStop(0, '#2a4a8a'); // MUPOL official blue
+            helicopterGradient.addColorStop(1, '#1a2e5a'); // MUPOL dark blue
+            ctx.fillStyle = helicopterGradient;
+            ctx.fillRect(-gameState.player.width / 2, -gameState.player.height / 2, gameState.player.width, gameState.player.height);
+            
+            // Spanish flag stripes on helicopter (official colors)
+            ctx.fillStyle = '#AA151B'; // Official Spanish flag red
+            ctx.fillRect(-gameState.player.width / 2, -gameState.player.height / 2, gameState.player.width, 4);
+            ctx.fillStyle = '#F1BF00'; // Official Spanish flag yellow
+            ctx.fillRect(-gameState.player.width / 2, -gameState.player.height / 2 + 4, gameState.player.width, 8);
+            ctx.fillStyle = '#AA151B'; // Official Spanish flag red
+            ctx.fillRect(-gameState.player.width / 2, -gameState.player.height / 2 + 12, gameState.player.width, 4);
+            
+            // MUPOL official badge/emblem on helicopter
+            ctx.fillStyle = '#F1BF00';
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Police star in badge (official design)
+            ctx.fillStyle = '#1a2e5a';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                const x = Math.cos(angle) * 4;
+                const y = Math.sin(angle) * 4;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Helicopter rotor (spinning)
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const rotorLength = gameState.player.width + 10;
+            const rotorAngle = (gameState.sirenState * Math.PI / 10) % (Math.PI * 2);
+            ctx.moveTo(-rotorLength / 2 * Math.cos(rotorAngle), -rotorLength / 2 * Math.sin(rotorAngle) - gameState.player.height / 2 - 5);
+            ctx.lineTo(rotorLength / 2 * Math.cos(rotorAngle), rotorLength / 2 * Math.sin(rotorAngle) - gameState.player.height / 2 - 5);
+            ctx.stroke();
+            
+            // Police lights (flashing) - Official Spanish police colors
+            const lightColor = gameState.sirenState < 10 ? '#AA151B' : '#2a4a8a';
+            ctx.fillStyle = lightColor;
+            ctx.fillRect(-8, -gameState.player.height / 2 + 2, 4, 3);
+            ctx.fillRect(4, -gameState.player.height / 2 + 2, 4, 3);
+            
+            ctx.restore();
+
+            // Draw bullets
+            ctx.fillStyle = '#F1BF00';
+            gameState.bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            });
+
+            // Draw enemies
+            gameState.enemies.forEach(enemy => {
+                ctx.save();
+                ctx.translate(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                
+                if (enemy.type === 'drone') {
+                    ctx.fillStyle = '#ff4444';
+                    ctx.fillRect(-enemy.width / 2, -enemy.height / 2, enemy.width, enemy.height);
+                    // Propellers
+                    ctx.fillStyle = '#888';
+                    ctx.fillRect(-enemy.width / 2 - 5, -5, 10, 10);
+                    ctx.fillRect(enemy.width / 2 - 5, -5, 10, 10);
+                } else {
+                    ctx.fillStyle = '#ff6666';
+                    ctx.fillRect(-enemy.width / 2, -enemy.height / 2, enemy.width, enemy.height);
+                    // Wings
+                    ctx.fillStyle = '#ff8888';
+                    ctx.fillRect(-enemy.width / 2 - 10, -5, 20, 10);
+                    ctx.fillRect(enemy.width / 2 - 10, -5, 20, 10);
+                }
+                
+                ctx.restore();
+            });
+
+            // Draw enemy bullets
+            ctx.fillStyle = '#ff0000';
+            gameState.enemyBullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            });
+
+            // Draw power-ups
+            gameState.powerUps.forEach(powerUp => {
+                ctx.save();
+                ctx.translate(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2);
+                
+                if (powerUp.type === 'mupolPlus') {
+                    // MUPOL Plus - Premium shield design
+                    ctx.fillStyle = '#F1BF00'; // Gold background
+                    ctx.fillRect(-powerUp.width / 2, -powerUp.height / 2, powerUp.width, powerUp.height);
+                    
+                    // Shield shape
+                    ctx.fillStyle = '#1a2e5a'; // MUPOL blue
+                    ctx.beginPath();
+                    ctx.moveTo(0, -12);
+                    ctx.lineTo(8, -6);
+                    ctx.lineTo(8, 6);
+                    ctx.quadraticCurveTo(8, 12, 0, 15);
+                    ctx.quadraticCurveTo(-8, 12, -8, 6);
+                    ctx.lineTo(-8, -6);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Star
+                    ctx.fillStyle = '#F1BF00';
+                    ctx.beginPath();
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i * 4 * Math.PI) / 5;
+                        const x = Math.cos(angle) * 4;
+                        const y = Math.sin(angle) * 4;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // M+ text
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '8px Arial Black';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('M+', 0, 10);
+                } else {
+                    // Plan Ahorro - Savings design
+                    ctx.fillStyle = '#AA151B'; // Red background
+                    ctx.fillRect(-powerUp.width / 2, -powerUp.height / 2, powerUp.width, powerUp.height);
+                    
+                    // Coin design
+                    ctx.strokeStyle = '#F1BF00';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#F1BF00';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Euro symbol
+                    ctx.fillStyle = '#1a2e5a';
+                    ctx.font = '12px Arial Black';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('€', 0, 4);
+                    
+                    // PA text
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '7px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PA', 0, 18);
+                }
+                
+                ctx.restore();
+            });
+
+            // Draw explosions
+            gameState.explosions.forEach(explosion => {
+                const size = explosion.size || 1;
+                const radius = Math.max(1, (20 - explosion.timer) * 2 * size);
+                const opacity = explosion.timer / 20;
+                
+                if (radius > 1 && opacity > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = opacity;
+                    
+                    // Outer explosion
+                    const explosionGradient = ctx.createRadialGradient(explosion.x, explosion.y, 0, explosion.x, explosion.y, radius);
+                    explosionGradient.addColorStop(0, '#F1BF00');
+                    explosionGradient.addColorStop(0.5, '#ff8800');
+                    explosionGradient.addColorStop(1, '#AA151B');
+                    
+                    ctx.fillStyle = explosionGradient;
+                    ctx.beginPath();
+                    ctx.arc(explosion.x, explosion.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            });
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize and start game
+        initGame();
+        updateUI();
+        gameLoop();
+    </script>
+</body>
+</html>
