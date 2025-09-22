@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>MUpol: Escuadrón de Protección</title>
     <style>
         * {
@@ -160,6 +162,167 @@
             margin: 5px 0;
         }
 
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .touch-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .dpad {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .dpad-button {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: rgba(241, 191, 0, 0.8);
+            border: 2px solid #F1BF00;
+            border-radius: 5px;
+            color: #1a2e5a;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .dpad-button:active {
+            background: rgba(241, 191, 0, 1);
+            transform: scale(0.95);
+        }
+
+        .dpad-up { top: 0; left: 50%; transform: translateX(-50%); }
+        .dpad-down { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .dpad-left { left: 0; top: 50%; transform: translateY(-50%); }
+        .dpad-right { right: 0; top: 50%; transform: translateY(-50%); }
+
+        .shoot-button {
+            width: 80px;
+            height: 80px;
+            background: rgba(170, 21, 27, 0.8);
+            border: 3px solid #AA151B;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .shoot-button:active {
+            background: rgba(170, 21, 27, 1);
+            transform: scale(0.95);
+        }
+
+        .pause-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(241, 191, 0, 0.8);
+            border: 2px solid #F1BF00;
+            border-radius: 8px;
+            color: #1a2e5a;
+            font-weight: bold;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+            z-index: 1000;
+        }
+
+        .pause-button:active {
+            background: rgba(241, 191, 0, 1);
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: block;
+            }
+            
+            .pause-button {
+                display: flex;
+            }
+
+            .header {
+                margin-bottom: 10px;
+            }
+
+            .title {
+                font-size: 2.5rem;
+            }
+
+            .game-ui {
+                font-size: 1rem;
+                gap: 15px;
+            }
+
+            .controls {
+                font-size: 0.8rem;
+            }
+
+            body {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .organization {
+                font-size: 0.8rem;
+            }
+
+            .game-ui {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .dpad {
+                width: 100px;
+                height: 100px;
+            }
+
+            .dpad-button {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
+
+            .shoot-button {
+                width: 70px;
+                height: 70px;
+                font-size: 14px;
+            }
+        }
+
         .hidden {
             display: none;
         }
@@ -271,11 +434,26 @@
         </div>
     </div>
 
+    <button class="pause-button" id="pauseBtn" onclick="togglePause()">⏸</button>
+
+    <div class="mobile-controls" id="mobileControls">
+        <div class="touch-buttons">
+            <div class="dpad">
+                <button class="dpad-button dpad-up" id="upBtn">↑</button>
+                <button class="dpad-button dpad-down" id="downBtn">↓</button>
+                <button class="dpad-button dpad-left" id="leftBtn">←</button>
+                <button class="dpad-button dpad-right" id="rightBtn">→</button>
+            </div>
+            <button class="shoot-button" id="shootBtn">FUEGO</button>
+        </div>
+    </div>
+
     <div class="controls">
         <h3>Controles</h3>
-        <p>← → ↑ ↓ - Mover helicóptero</p>
-        <p>ESPACIO - Disparar</p>
-        <p>P - Pausar/Reanudar</p>
+        <p class="desktop-controls">← → ↑ ↓ - Mover helicóptero</p>
+        <p class="desktop-controls">ESPACIO - Disparar</p>
+        <p class="desktop-controls">P - Pausar/Reanudar</p>
+        <p class="mobile-controls-text" style="display: none;">Usa los controles táctiles en pantalla</p>
         
         <h3 style="margin-top: 15px;">Mecánica del Juego</h3>
         <p>• El jugador comienza con €32,000 de capital asegurado</p>
@@ -362,7 +540,115 @@
                     speed: 0.8
                 });
             }
+            
+            // Setup mobile controls if needed
+            setupMobileControls();
         }
+
+        // Mobile controls setup
+        function setupMobileControls() {
+            const isMobile = window.innerWidth <= 768;
+            const mobileControls = document.getElementById('mobileControls');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const desktopControls = document.querySelectorAll('.desktop-controls');
+            const mobileControlsText = document.querySelector('.mobile-controls-text');
+            
+            // Adjust canvas size for mobile
+            if (isMobile) {
+                const maxWidth = Math.min(window.innerWidth - 40, 800);
+                const maxHeight = Math.min(window.innerHeight * 0.5, 600);
+                const aspectRatio = 800 / 600;
+                
+                let canvasWidth = maxWidth;
+                let canvasHeight = maxWidth / aspectRatio;
+                
+                if (canvasHeight > maxHeight) {
+                    canvasHeight = maxHeight;
+                    canvasWidth = maxHeight * aspectRatio;
+                }
+                
+                canvas.style.width = canvasWidth + 'px';
+                canvas.style.height = canvasHeight + 'px';
+                
+                mobileControls.style.display = 'block';
+                pauseBtn.style.display = 'flex';
+                desktopControls.forEach(el => el.style.display = 'none');
+                mobileControlsText.style.display = 'block';
+            } else {
+                canvas.style.width = '800px';
+                canvas.style.height = '600px';
+                mobileControls.style.display = 'none';
+                pauseBtn.style.display = 'none';
+                desktopControls.forEach(el => el.style.display = 'block');
+                mobileControlsText.style.display = 'none';
+            }
+            
+            // Touch controls
+            const touchButtons = {
+                upBtn: 'ArrowUp',
+                downBtn: 'ArrowDown', 
+                leftBtn: 'ArrowLeft',
+                rightBtn: 'ArrowRight',
+                shootBtn: 'Space'
+            };
+            
+            // Remove existing listeners to prevent duplicates
+            Object.keys(touchButtons).forEach(buttonId => {
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    const newButton = button.cloneNode(true);
+                    button.parentNode.replaceChild(newButton, button);
+                }
+            });
+            
+            // Add new listeners
+            Object.keys(touchButtons).forEach(buttonId => {
+                const button = document.getElementById(buttonId);
+                const keyCode = touchButtons[buttonId];
+                
+                if (button) {
+                    // Touch start
+                    button.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        gameState.keys[keyCode] = true;
+                    });
+                    
+                    // Touch end
+                    button.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        gameState.keys[keyCode] = false;
+                    });
+                    
+                    // Mouse events as fallback
+                    button.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        gameState.keys[keyCode] = true;
+                    });
+                    
+                    button.addEventListener('mouseup', (e) => {
+                        e.preventDefault();
+                        gameState.keys[keyCode] = false;
+                    });
+                    
+                    // Prevent context menu on long press
+                    button.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                    });
+                }
+            });
+            
+            // Prevent scrolling when touching controls
+            if (mobileControls) {
+                mobileControls.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            setupMobileControls();
+        });
 
         // Input handling
         document.addEventListener('keydown', (e) => {
