@@ -187,7 +187,7 @@
             position: absolute;
             width: 35px;
             height: 35px;
-            background: rgba(241, 191, 0, 0.8);
+            background: rgba(241, 191, 0, 0.9);
             border: 2px solid #F1BF00;
             border-radius: 5px;
             color: #1a2e5a;
@@ -197,38 +197,66 @@
             align-items: center;
             justify-content: center;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             touch-action: manipulation;
+            transition: all 0.1s ease;
+            cursor: pointer;
         }
 
-        .dpad-button:active {
+        .dpad-button:active, .dpad-button.pressed {
             background: rgba(241, 191, 0, 1);
             transform: scale(0.95);
+            box-shadow: 0 0 10px rgba(241, 191, 0, 0.5);
         }
 
-        .dpad-up { top: 0; left: 50%; transform: translateX(-50%); }
-        .dpad-down { bottom: 0; left: 50%; transform: translateX(-50%); }
-        .dpad-left { left: 0; top: 50%; transform: translateY(-50%); }
-        .dpad-right { right: 0; top: 50%; transform: translateY(-50%); }
+        .dpad-up { 
+            top: 0; 
+            left: 50%; 
+            transform: translateX(-50%); 
+        }
+        .dpad-down { 
+            bottom: 0; 
+            left: 50%; 
+            transform: translateX(-50%); 
+        }
+        .dpad-left { 
+            left: 0; 
+            top: 50%; 
+            transform: translateY(-50%); 
+        }
+        .dpad-right { 
+            right: 0; 
+            top: 50%; 
+            transform: translateY(-50%); 
+        }
 
         .shoot-button {
             width: 80px;
             height: 80px;
-            background: rgba(170, 21, 27, 0.8);
+            background: rgba(170, 21, 27, 0.9);
             border: 3px solid #AA151B;
             border-radius: 50%;
             color: white;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             touch-action: manipulation;
+            transition: all 0.1s ease;
+            cursor: pointer;
+            text-align: center;
+            line-height: 1;
         }
 
-        .shoot-button:active {
+        .shoot-button:active, .shoot-button.pressed {
             background: rgba(170, 21, 27, 1);
             transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(170, 21, 27, 0.5);
         }
 
         .pause-button {
