@@ -276,6 +276,12 @@
         <p>← → ↑ ↓ - Mover helicóptero</p>
         <p>ESPACIO - Disparar</p>
         <p>P - Pausar/Reanudar</p>
+        
+        <h3 style="margin-top: 15px;">Mecánica del Juego</h3>
+        <p>• El jugador comienza con €32,000 de capital asegurado</p>
+        <p>• Cada impacto reduce el capital en €16,000</p>
+        <p>• <strong>Plan de Ahorro</strong> restaura €10,000 (recupera protección básica)</p>
+        <p>• <strong>MUpol Plus</strong> restaura €100,000 (protección premium muy valiosa)</p>
     </div>
 
     <script>
@@ -289,7 +295,7 @@
         const ENEMY_BULLET_SPEED = 5;
         const INITIAL_INSURED_CAPITAL = 32000;
         const PLAYER_HIT_DAMAGE = 16000;
-        const PLAN_AHORRO_VALUE = 40000;
+        const PLAN_AHORRO_VALUE = 10000;
         const MUPOL_PLUS_VALUE = 100000;
 
         // Game state
@@ -791,9 +797,9 @@
                     
                     // M+ text
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '8px Arial Black';
+                    ctx.font = '6px Arial Black';
                     ctx.textAlign = 'center';
-                    ctx.fillText('M+', 0, 10);
+                    ctx.fillText('100K', 0, 10);
                 } else {
                     // Plan Ahorro - Savings design
                     ctx.fillStyle = '#AA151B'; // Red background
@@ -817,11 +823,11 @@
                     ctx.textAlign = 'center';
                     ctx.fillText('€', 0, 4);
                     
-                    // PA text
+                    // PA text  
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '7px Arial';
+                    ctx.font = '6px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('PA', 0, 18);
+                    ctx.fillText('10K', 0, 18);
                 }
                 
                 ctx.restore();
